@@ -6,7 +6,6 @@
 #include "DESmfcdemo.h"
 #include "DESmfcdemoDlg.h"
 #include "afxdialogex.h"
-#include "desencryption.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -216,8 +215,10 @@ void CDESmfcdemoDlg::ChooseFile()
 	{
 		//添加新文件时清空原文件列表
 		filelist.clear();
-		string pathname = filedialog.GetPathName();  //获取选择的文件完整路径，包含文件名及扩展名
-		filelist.push_back(pathname);  //把选择的文件路径加入文件列表
+		//更新文件信息
+		fileinfo.from = "";
+		fileinfo.file = filedialog.GetPathName();  //获取选择的文件完整路径，包含文件名及扩展名
+		filelist.push_back(fileinfo);  //把选择的文件路径加入文件列表
 	}
 }
 
@@ -242,6 +243,8 @@ void CDESmfcdemoDlg::ChooseDir()
     {
 		//添加新文件时清空原文件列表
 		filelist.clear();
+		//更新文件目录信息
+		fileinfo.from = dir;
 		AddFile(dir);  //设置Edit显示完整路径
     }
 }
@@ -261,7 +264,9 @@ void CDESmfcdemoDlg::AddFile(CString Curdir)
 		}
 		else if(filename[0] != _TEXT('.'))  //当前为文件类型
 		{
-			filelist.push_back(filefind.GetFilePath().GetBuffer(0));  //把文件加入文件列表
+			//更新文件信息
+			fileinfo.file = filefind.GetFilePath().GetBuffer(0);
+			filelist.push_back(fileinfo);  //把文件加入文件列表
 		}
 	}
 }
@@ -290,7 +295,7 @@ void CDESmfcdemoDlg::Encrypt()
 		return;
 	}
 	//创建并初始化des加密类对象
-	desencryption des(key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
+	encrypt des(key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
 	//调用对象加密函数
 	des.desEncrypt();
 	AfxMessageBox("已完成！");
@@ -320,7 +325,7 @@ void CDESmfcdemoDlg::Decrypt()
 		return;
 	}
 	//创建并初始化des加密类对象
-	desencryption des(key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
+	encrypt des(key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
 	//调用对象解密函数
 	des.desDecrypt();
 	AfxMessageBox("已完成！");

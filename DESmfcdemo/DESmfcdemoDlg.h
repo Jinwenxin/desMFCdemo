@@ -4,9 +4,8 @@
 
 #pragma once
 #include "afxwin.h"
-#include <vector>
+#include "encrypt.h"
 #include <string>
-using namespace std;
 
 // CDESmfcdemoDlg 对话框
 class CDESmfcdemoDlg : public CDialogEx
@@ -46,7 +45,9 @@ public:
 	afx_msg void Encrypt();
 	afx_msg void Decrypt();
 	//文件列表
-	vector<string> filelist;
+	Fvector filelist;
+	//文件信息
+	File fileinfo;
 	 //声明添加目录下文件到文件列表函数
 	void AddFile(CString Curdir); 
 	

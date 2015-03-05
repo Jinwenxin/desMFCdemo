@@ -5,6 +5,7 @@
 #include "time.h"
 #include "stdlib.h"
 
+
 /*初始置换表，逆初始置换表，S-Box等已知数据*/
 //初始置换表IP  
 int IP_Table[64] = {  57,49,41,33,25,17,9,1,  
@@ -122,89 +123,23 @@ int DES_XOR(ElemType R[48], ElemType L[48],int count);
 int DES_Swap(ElemType left[32],ElemType right[32]);  
 int DES_EncryptBlock(ElemType plainBlock[8], ElemType subKeys[16][48], ElemType cipherBlock[8]);  
 int DES_DecryptBlock(ElemType cipherBlock[8], ElemType subKeys[16][48], ElemType plainBlock[8]);  
-int DES_Encrypt(const char *plainFile, const char *keyStr,const char *cipherFile);  
-int DES_Decrypt(const char *cipherFile, const char *keyStr,const char *plainFile); 
 
 
-//构造函数,初始化成员变量
-//key       密钥
-//en_dir    加密输出目录
-//de_dir    解密输出目录
-//filelist  文件列表
-desencryption::desencryption(string key, vector<string> filelist, string en_dir = "", string de_dir = "")
+//构造函数
+desencryption::desencryption(void)
 {
-	this ->key = key;  //密钥
-	this ->en_dir = en_dir;  //加密输出目录
-	this ->de_dir = de_dir;  //解密输出目录
-	this ->filelist = filelist;  //文件列表
 }
 
 //析构函数
 desencryption::~desencryption(void)
 {
-	//释放存放文件列表容器所占内存
-	vector <string>().swap(filelist);  
 }
 
-//加密函数
-void desencryption::desEncrypt()
-{
-	//遍历文件列表进行加密操作
-	for(unsigned int i = 0; i < filelist.size(); i++)
-	{
-		string dir_temp;  //输出目录临时变量
-		if(en_dir != "")  
-		{
-			//将输出目录赋值给临时变量
-			dir_temp = en_dir;
-			//输出目录不为空则添加'\'
-			dir_temp += "\\";
-			//在输出目录中添加文件名
-			int pos = filelist[i].find_last_of('\\');
-			dir_temp += filelist[i].substr(pos + 1);
-		}
-		else
-		{
-			//输出目录为空则在源目录生成重命名加密文件
-			dir_temp = filelist[i];
-			int pos = filelist[i].find_last_of('.');
-			dir_temp.insert(pos, "副本");
-		}
-		DES_Encrypt(filelist[i].c_str(), key.c_str(), dir_temp.c_str());
-	}
-}
-
-//解密函数
-void desencryption::desDecrypt()
-{
-	//遍历文件列表进行解密操作
-	for(unsigned int i = 0; i < filelist.size(); i++)
-	{
-		string dir_temp;  //输出目录临时变量
-		if(de_dir != "")  
-		{
-			//将输出目录赋值给临时变量
-			dir_temp = de_dir;
-			//输出目录不为空则添加'\'
-			dir_temp += "\\";
-			//在输出目录中添加文件名
-			int pos = filelist[i].find_last_of('\\');
-			dir_temp += filelist[i].substr(pos + 1);
-		}
-		else
-		{
-			//输出目录为空则在源目录生成重命名解密文件
-			dir_temp = filelist[i];
-			int pos = filelist[i].find_last_of('.');
-			dir_temp.insert(pos, "副本");
-		}
-		DES_Decrypt(filelist[i].c_str(), key.c_str(), dir_temp.c_str());
-	}
-}
-
-
-//加密文件  
-int DES_Encrypt(const char *plainFile, const char *keyStr,const char *cipherFile){  
+//DES加密函数
+//   plainFile    待加密文件路径
+//   keyStr       密钥
+//   cipherFile   加密完成存放路径
+int desencryption::DES_Encrypt(const char *plainFile, const char *keyStr,const char *cipherFile){  
     FILE *plain,*cipher;  
     int count;  
     ElemType plainBlock[8],cipherBlock[8],keyBlock[8];  
@@ -243,8 +178,11 @@ int DES_Encrypt(const char *plainFile, const char *keyStr,const char *cipherFile
     return OK;  
 }  
   
-//解密文件  
-int DES_Decrypt(const char *cipherFile, const char *keyStr, const char *plainFile){  
+//DES解密函数
+//   cipherFile    待解密文件路径
+//   keyStr       密钥
+//   plainFile   解密完成存放路径 
+int desencryption::DES_Decrypt(const char *cipherFile, const char *keyStr, const char *plainFile){  
     FILE *plain, *cipher;  
     int count,times = 0;  
     long fileLen;  
