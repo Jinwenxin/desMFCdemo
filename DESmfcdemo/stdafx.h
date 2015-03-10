@@ -4,6 +4,7 @@
 // 特定于项目的包含文件
 
 #pragma once
+//#define WIN32_LEAN_AND_MEAN		// 加速头文件处理所用到的宏
 
 #ifndef _SECURE_ATL
 #define _SECURE_ATL 1
@@ -36,6 +37,8 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <afxcontrolbars.h>     // 功能区和控件条的 MFC 支持
+
+//#include <atlutil.h>    //使用CThreadPool
 
 
 

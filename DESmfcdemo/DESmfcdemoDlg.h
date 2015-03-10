@@ -48,7 +48,9 @@ public:
 	Fvector filelist;
 	//文件信息
 	File fileinfo;
+	//已完成任务线程数
+	int thread_finished;
 	 //声明添加目录下文件到文件列表函数
 	void AddFile(CString Curdir); 
-	
+	virtual BOOL OnWndMsg(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pResult);
 };
