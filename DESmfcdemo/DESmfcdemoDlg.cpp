@@ -296,20 +296,10 @@ void CDESmfcdemoDlg::Encrypt()
 	}
 	//初始化已完成任务线程数
 	thread_finished = 0;
-	//创建并初始化des加密类对象
-	encrypt des(GetSafeHwnd(), key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
-	//定义时钟用以计算加密效率
-	//clock_t start, end;
-	//获取加密开始时间
-	//start = clock();
-	//调用对象加密函数
-	des.desEncrypt();
-	//获取加密结束时间
-	//end = clock();
-	//计算加密效率
-	//CString cal;
-	//cal.Format("加密已完成！用时%.2fs", (end - start)/CLOCKS_PER_SEC);
-	//AfxMessageBox(cal);
+	//创建并初始化task类对象
+	task t(GetSafeHwnd(), key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
+	//调用对象任务函数
+	t.DoTask(2, 0);
 }
 
 //解密操作函数
@@ -335,21 +325,23 @@ void CDESmfcdemoDlg::Decrypt()
 		AfxMessageBox("请先输入密钥！");
 		return;
 	}
-	//创建并初始化des加密类对象
-	encrypt des(GetSafeHwnd(), key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
-	//调用对象解密函数
-	des.desDecrypt();
-	AfxMessageBox("已完成！");
+	//初始化已完成任务线程数
+	thread_finished = 0;
+	//创建并初始化task类对象
+	task t(GetSafeHwnd(), key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
+	//调用对象任务函数
+	t.DoTask(2, 1);
 }
 
 
+//接收线程结束消息函数
 BOOL CDESmfcdemoDlg::OnWndMsg(UINT message, WPARAM wParam, LPARAM lParam, LRESULT* pResult)
 {
 	if(message == WM_FINISHMSG)
 	{
 		thread_finished++;
 		if(thread_finished == 2)	
-			AfxMessageBox("加密已完成！");
+			AfxMessageBox("已完成！");
 	}
 	return CDialogEx::OnWndMsg(message, wParam, lParam, pResult);
 }

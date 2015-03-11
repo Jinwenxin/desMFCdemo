@@ -45,10 +45,16 @@
     <ClInclude Include="common.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="encrypt.h">
+    <ClInclude Include="RC4.H">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="RC4.H">
+    <ClInclude Include="Algorithm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="task.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="AES.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -65,10 +71,13 @@
     <ClCompile Include="desencryption.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="encrypt.cpp">
+    <ClCompile Include="Encrypt&amp;Decrypt.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Encrypt&amp;Decrypt.cpp">
+    <ClCompile Include="task.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AES.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

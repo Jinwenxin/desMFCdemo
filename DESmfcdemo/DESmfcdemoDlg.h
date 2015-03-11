@@ -4,7 +4,7 @@
 
 #pragma once
 #include "afxwin.h"
-#include "encrypt.h"
+#include "task.h"
 #include <string>
 
 // CDESmfcdemoDlg ¶Ô»°¿ò
