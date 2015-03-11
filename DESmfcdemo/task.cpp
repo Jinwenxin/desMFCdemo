@@ -77,10 +77,21 @@ void pathTransform(string dir, File fileinfo, string &dir_temp)
 			dir_temp = dir;
 			//查找要保持的文件目录结构起始位置
 			int pos = fileinfo.from.size();
-			//添加文件目录结构及文件名
-			dir_temp += fileinfo.file.substr(pos);
-			//保持文件的目录结构，如果目录不存在则创建目录
-			MakeSureDirectoryPathExists(dir_temp.c_str());
+			
+			if(pos == 0)    //是选择文件操作
+			{
+				//找到路径中文件名起始位置
+				pos = fileinfo.file.find_last_of('\\');
+				//添加文件名
+				dir_temp += fileinfo.file.substr(pos);
+			}
+			else			//是选择目录操作
+			{
+				//添加文件目录结构及文件名
+				dir_temp += fileinfo.file.substr(pos);
+				//保持文件的目录结构，如果目录不存在则创建目录
+				MakeSureDirectoryPathExists(dir_temp.c_str());
+			}
 		}
 		else
 		{

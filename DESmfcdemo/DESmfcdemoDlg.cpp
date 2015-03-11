@@ -217,7 +217,7 @@ void CDESmfcdemoDlg::ChooseFile()
 		filelist.clear();
 		//更新文件信息
 		fileinfo.from = "";
-		fileinfo.file = filedialog.GetPathName();  //获取选择的文件完整路径，包含文件名及扩展名
+		fileinfo.file = filedialog.GetPathName().GetBuffer(0);  //获取选择的文件完整路径，包含文件名及扩展名
 		filelist.push_back(fileinfo);  //把选择的文件路径加入文件列表
 	}
 }
