@@ -7,7 +7,7 @@ string en_dir;      //加密输出目录
 string de_dir;      //解密输出目录
 Fvector filelist;   //文件列表
 int alg;            //加解密算法类型
-int type;           //操作类型，0-加密，1-解密
+int type;           //操作类型，0-一级加密，1-二级加密，2-解密
 
 CRITICAL_SECTION g_cs;    //临界区对象
 int g_index;          //全局资源，记录文件列表中已处理的索引
@@ -97,9 +97,16 @@ void pathTransform(string dir, File fileinfo, string &dir_temp)
 		{
 			//输出目录为空则在源目录生成重命名解密文件
 			dir_temp = fileinfo.file;
-			int pos = fileinfo.file.find_last_of('.');
-			dir_temp.insert(pos, "副本");
 		}
+		//修改加密文件扩展名
+		int posext = dir_temp.find_last_of('.');
+		//去除原文件的拓展名
+		dir_temp = dir_temp.substr(0, posext);
+		//添加定义好的加密文件拓展名
+		if(type == 2)  //解密操作时拓展名为.fess
+			dir_temp += ".fess";
+		else
+			dir_temp += ".fes";
 }
 
 
@@ -134,19 +141,29 @@ UINT EnThread(LPVOID param)
 		BaseAlg *base = NULL;
 		//转换成相应算法类对象
 		base = CreateAlg(base, alg);
-		if(type == 0)
+
+		switch(type)
 		{
+		case 0:		//一级加密
 			//调用文件路径转换函数
 			pathTransform(en_dir, filelist[index], dir_temp);
 			//调用加密函数
-			base->Encrypt(filelist[index].file.c_str(), key.c_str(), dir_temp.c_str());
-		}
-		else
-		{
+			base->Encrypt(filelist[index].file, key, dir_temp);
+			break;
+		case  1:	//二级加密
+			//调用文件路径转换函数
+			pathTransform(en_dir, filelist[index], dir_temp);
+			//调用二级加密函数
+			base->SecondEncrypt(filelist[index].file, key, dir_temp);
+			break;
+		case 2:		//解密
 			//调用文件路径转换函数
 			pathTransform(de_dir, filelist[index], dir_temp);
-			//调用解密函数
-			base->Decrypt(filelist[index].file.c_str(), key.c_str(), dir_temp.c_str());
+			//调用二级解密函数
+			base->Decrypt(filelist[index].file, key, dir_temp);
+			break;
+		default:
+			break;
 		}
 	}
 	return true;
@@ -165,10 +182,11 @@ BaseAlg *CreateAlg(BaseAlg *base, int alg)
 		break;
 		//RC4加解密
 	case 1:
-		base = new RC4Alg;
+		//base = new RC4Alg;
 		break;
 	case 2:
-		base = new AESAlg;
+		//AES加解密
+		//base = new AESAlg;
 		break;
 	default:
 		break;
