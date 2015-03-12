@@ -95,7 +95,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="ReadMe.txt" />
+    <None Include="ReadMe.md" />
     <None Include="res\DESmfcdemo.ico" />
     <None Include="res\DESmfcdemo.rc2" />
   </ItemGroup>
@@ -114,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AES.cpp" />
+    <ClCompile Include="Algorithm.cpp" />
     <ClCompile Include="desencryption.cpp" />
     <ClCompile Include="DESmfcdemo.cpp" />
     <ClCompile Include="DESmfcdemoDlg.cpp" />
