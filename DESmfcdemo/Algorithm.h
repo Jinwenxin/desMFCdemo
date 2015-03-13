@@ -31,6 +31,7 @@ class BaseAlg
 };
 
 
+
 //DESº”√‹À„∑®¿‡
 class DESAlg : public BaseAlg
 {

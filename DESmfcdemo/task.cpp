@@ -145,6 +145,8 @@ UINT EnThread(LPVOID param)
 		case iEncrypt:		//一级加密
 			//转换成相应算法类对象
 			base = CreateAlg(base, alg);
+		switch(type)
+		case 0:		//一级加密
 			//调用文件路径转换函数
 			pathTransform(en_dir, filelist[index], dir_temp);
 			//调用加密函数
