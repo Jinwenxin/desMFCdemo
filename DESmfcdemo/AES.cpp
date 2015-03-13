@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "AES.h"
 
-
 AES::AES(void)
 {
 	unsigned char sBox[] = 
@@ -343,7 +342,7 @@ void AES::Encrypt_File(string plainFile, unsigned char* key, string cipherFile)
 	KeyExpansion(key, w);
 	fstream plain, cipher;
 	plain.open(plainFile, ios::binary | ios::in);
-	cipher.open(cipherFile, ios::binary | ios::out);
+	cipher.open(cipherFile, ios::binary | ios::out | ios::app);
 	if(plain == NULL){
 		cout << "can't open plain file" << endl;
         return;

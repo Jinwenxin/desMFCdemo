@@ -168,8 +168,8 @@ UINT EnThread(LPVOID param)
 				int alg_temp;
 				//待解密文件原扩展名
 				string ext_temp = "";
-				//读取待解密文件信息，并记录文件信息字节数
-				int bitcount = ReadInfo(alg_temp, ext_temp, filelist[index].file);
+				//读取待解密文件信息
+				ReadInfo(alg_temp, ext_temp, filelist[index].file);
 
 				//转换成相应算法类对象
 				base = CreateAlg(base, alg_temp);
@@ -181,7 +181,7 @@ UINT EnThread(LPVOID param)
 				//去除原文件的拓展名
 				dir_temp = dir_temp.substr(0, posext + 1);
 				dir_temp += ext_temp;
-				//调用二级解密函数
+				//调用解密函数
 				base->Decrypt(filelist[index].file, key.c_str(), dir_temp);
 				break;
 			}

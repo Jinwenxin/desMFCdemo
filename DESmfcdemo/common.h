@@ -14,3 +14,6 @@ struct File
 
 //自定义存放File结构体容器Fvector
 typedef vector<File> Fvector;
+
+//文件信息缓冲大小
+const int BUFMAX = 10;

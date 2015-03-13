@@ -2,10 +2,6 @@
 #include "Algorithm.h"
 
 
-//文件信息缓冲大小
-const int BUFMAX = 10;
-
-
 //DES加密算法类
 
 //DES加密函数
@@ -146,8 +142,10 @@ extern void WriteInfo(int alg, string ext, string filepath)
 	buf.push_back('*');
 	//加入文件扩展名
 	buf += ext;
-	//加入信息分隔符
-	buf.push_back('*');
+	//用信息分隔符填充剩余长度字符
+	while(buf.size() < BUFMAX)
+		buf.push_back('*');
+
 	//将文件信息写入文件
 	fwrite(buf.c_str(), sizeof(char), buf.size(), file);
 	//关闭文件
@@ -159,36 +157,26 @@ extern void WriteInfo(int alg, string ext, string filepath)
 // alg			加密算法类型
 // ext			文件扩展名
 // filepath		文件路径 
-int ReadInfo(int &alg, string &ext, string filepath)
+void ReadInfo(int &alg, string &ext, string filepath)
 {
 	FILE *file;
 	//打开待解密文件
 	if((file = fopen(filepath.c_str(),"rb")) == NULL)
-		return 0;
+		return;
 
 	//文件信息缓冲区
 	char buf[BUFMAX];
-	//统计文件信息字节数
-	int bitcount = 0;
 	//读取加密类型及分隔符
-	fread(buf, sizeof(char), 2, file);
+	fread(buf, sizeof(char), BUFMAX, file);
 	//将加密类型赋值
 	alg = buf[0] - '0';
-	//文件信息字节数+2
-	bitcount += 2;
 
-	//读取文件拓展名
-	while(fread(buf, sizeof(char), 1, file))
+	//读取文件拓展名,遇到分隔符则停止读取
+	for(int i = 2; buf[i] != '*'; i++)
 	{
-		//文件信息字节数+1
-		bitcount++;
-		if(buf[0] == '*')
-			break;	//遇到分隔符则停止读取
 		//将读取的字符加入扩展名变量中
-		ext.push_back(buf[0]);
+		ext.push_back(buf[i]);
 	}
 	//关闭文件
 	fclose(file);
-	//返回文件信息字节数
-	return bitcount;
 }

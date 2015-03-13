@@ -62,11 +62,10 @@ void init_s(const char *key_data)//≥ı ºªØs±Ì
 
  void RC4::Encrypt(const char *r,const char *key,const char *w)
  {
-
     char *result=NULL; 
 	fstream in,out;
 	in.open(r,ios::binary|ios::in);
-	out.open(w,ios::binary|ios::out);
+	out.open(w,ios::binary|ios::out|ios::app);
 
 
 

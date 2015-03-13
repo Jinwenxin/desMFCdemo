@@ -5,6 +5,8 @@
 #include "time.h"
 #include "stdlib.h"
 
+//标识是否二级解密，默认为一级解密
+bool SecEn = false;
 
 /*初始置换表，逆初始置换表，S-Box等已知数据*/
 //初始置换表IP  
@@ -148,7 +150,7 @@ int desencryption::DES_Encrypt(const char *plainFile, const char *keyStr,const c
     if((plain = fopen(plainFile,"rb")) == NULL){  
         return PLAIN_FILE_OPEN_ERROR;  
     }     
-    if((cipher = fopen(cipherFile,"a+")) == NULL){  
+    if((cipher = fopen(cipherFile,"ab+")) == NULL){  
         return CIPHER_FILE_OPEN_ERROR;  
     }  
     //设置密钥  
@@ -207,6 +209,15 @@ int desencryption::DES_Decrypt(const char *cipherFile, const char *keyStr, const
     fseek(cipher,0,SEEK_END);   //将文件指针置尾  
     fileLen = ftell(cipher);    //取文件指针当前位置  
     rewind(cipher);             //将文件指针重指向文件头  
+
+	//如果不是二级解密，则将文件指针移到数据区
+	if(!SecEn)
+	{
+		fseek(cipher, BUFMAX,1);
+		fileLen -=BUFMAX;
+		SecEn = true;
+	}
+
     while(1){  
         //密文的字节数一定是8的整数倍  
         fread(cipherBlock,sizeof(char),8,cipher);  

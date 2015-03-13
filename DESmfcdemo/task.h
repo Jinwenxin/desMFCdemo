@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include "common.h"
 #include "Algorithm.h"
 
 #define WM_FINISHMSG WM_USER + 200	//自定义消息
