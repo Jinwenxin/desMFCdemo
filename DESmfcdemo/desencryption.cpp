@@ -148,14 +148,14 @@ int desencryption::DES_Encrypt(const char *plainFile, const char *keyStr,const c
     if((plain = fopen(plainFile,"rb")) == NULL){  
         return PLAIN_FILE_OPEN_ERROR;  
     }     
-    if((cipher = fopen(cipherFile,"wb")) == NULL){  
+    if((cipher = fopen(cipherFile,"a+")) == NULL){  
         return CIPHER_FILE_OPEN_ERROR;  
     }  
     //设置密钥  
     memcpy(keyBlock,keyStr,8);  
     //将密钥转换为二进制流  
     Char8ToBit64(keyBlock,bKey);  
-    //生成子密钥  
+    //生成子密钥
     DES_MakeSubKeys(bKey,subKeys);  
       
     while(!feof(plain)){  

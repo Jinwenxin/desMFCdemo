@@ -139,29 +139,50 @@ UINT EnThread(LPVOID param)
 
 		//创建算法基类对象
 		BaseAlg *base = NULL;
-		//转换成相应算法类对象
-		base = CreateAlg(base, alg);
 
 		switch(type)
 		{
-		case 0:		//一级加密
+		case iEncrypt:		//一级加密
+			//转换成相应算法类对象
+			base = CreateAlg(base, alg);
 			//调用文件路径转换函数
 			pathTransform(en_dir, filelist[index], dir_temp);
 			//调用加密函数
-			base->Encrypt(filelist[index].file, key, dir_temp);
+			base->Encrypt(filelist[index].file, key.c_str(), dir_temp);
 			break;
-		case  1:	//二级加密
+
+		case  iSecEncrypt:	//二级加密
+			//转换成相应算法类对象
+			base = CreateAlg(base, alg);
 			//调用文件路径转换函数
 			pathTransform(en_dir, filelist[index], dir_temp);
 			//调用二级加密函数
-			base->SecondEncrypt(filelist[index].file, key, dir_temp);
+			base->SecondEncrypt(filelist[index].file, key.c_str(), dir_temp);
 			break;
-		case 2:		//解密
-			//调用文件路径转换函数
-			pathTransform(de_dir, filelist[index], dir_temp);
-			//调用二级解密函数
-			base->Decrypt(filelist[index].file, key, dir_temp);
-			break;
+
+		case iDecrypt:		//解密
+			{
+				//待解密文件加密类型
+				int alg_temp;
+				//待解密文件原扩展名
+				string ext_temp = "";
+				//读取待解密文件信息，并记录文件信息字节数
+				int bitcount = ReadInfo(alg_temp, ext_temp, filelist[index].file);
+
+				//转换成相应算法类对象
+				base = CreateAlg(base, alg_temp);
+				//调用文件路径转换函数
+				pathTransform(de_dir, filelist[index], dir_temp);
+
+				//更改文件解密输出文件扩展名为文件原扩展名
+				int posext = dir_temp.find_last_of('.');
+				//去除原文件的拓展名
+				dir_temp = dir_temp.substr(0, posext + 1);
+				dir_temp += ext_temp;
+				//调用二级解密函数
+				base->Decrypt(filelist[index].file, key.c_str(), dir_temp);
+				break;
+			}
 		default:
 			break;
 		}
@@ -177,14 +198,14 @@ BaseAlg *CreateAlg(BaseAlg *base, int alg)
 	switch(alg)
 	{
 		//DES加解密
-	case 0:
+	case iDES:
 		base = new DESAlg;
 		break;
 		//RC4加解密
-	case 1:
+	case iRC4:
 		//base = new RC4Alg;
 		break;
-	case 2:
+	case iAES:
 		//AES加解密
 		//base = new AESAlg;
 		break;
