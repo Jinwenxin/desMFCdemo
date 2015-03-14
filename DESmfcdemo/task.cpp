@@ -219,7 +219,7 @@ BaseAlg *CreateAlg(BaseAlg *base, int alg)
 		break;
 		//RC4加解密
 	case iRC4:
-		//base = new RC4Alg;
+		base = new RC4Alg;
 		break;
 	case iAES:
 		//AES加解密

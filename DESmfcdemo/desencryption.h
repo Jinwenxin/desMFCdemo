@@ -1,5 +1,4 @@
 #pragma once
-#include "common.h"
 
 //∫Í∂®“Â
 #define PLAIN_FILE_OPEN_ERROR -1

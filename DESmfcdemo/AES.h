@@ -3,7 +3,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-//#include "common.h"
+
 using namespace std;
 
 class AES

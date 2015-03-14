@@ -9,14 +9,6 @@
 #include<time.h>
 using namespace std;
 
-
-
-
-
-
-
-
-
 char rc4key[256];//随机化密钥表 
 char s[256];//初始化阶段所用的s表  
 
@@ -66,9 +58,6 @@ void init_s(const char *key_data)//初始化s表
 	fstream in,out;
 	in.open(r,ios::binary|ios::in);
 	out.open(w,ios::binary|ios::out|ios::app);
-
-
-
 
 	if(!in)
 		cout<<"第一个文件打开失败"<<endl;
@@ -120,6 +109,10 @@ void init_s(const char *key_data)//初始化s表
 
 	char buf_data[256];
 	int buf_len=0;
+
+	//将文件指针移到数据区
+	in.seekg(BUFMAX, ios::cur);
+
 	while(!in.eof())
 	{		 	   
 			in.read(buf_data,sizeof(buf_data));

@@ -299,7 +299,7 @@ void CDESmfcdemoDlg::Encrypt()
 	//创建并初始化task类对象
 	task t(GetSafeHwnd(), key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
 	//调用对象任务函数
-	t.DoTask(0, 1);
+	t.DoTask(0, 0);
 }
 
 //解密操作函数

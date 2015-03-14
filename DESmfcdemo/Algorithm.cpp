@@ -10,7 +10,7 @@ void DESAlg::Encrypt(string plainFile, const char *keyStr,string cipherFile)
 	desencryption des;
 	//计算待加密文件MD5值
 	string md5str = "";
-	MD5_Read(plainFile.c_str(),md5str);
+	MD5_Read(plainFile.c_str(), md5str);
 	//调用写入信息函数
 	WriteInfo(iDES, FindExt(plainFile), md5str, cipherFile);
 	//调用加密函数
@@ -65,8 +65,19 @@ void RC4Alg::Encrypt(string plainFile, const char *keyStr,string cipherFile)
 {
 	//创建RC4加密类对象
 	RC4 rc4;
+	//计算待加密文件MD5值
+	string md5str = "";
+	MD5_Read(plainFile.c_str(), md5str);
+	WriteInfo(iRC4, FindExt(plainFile), md5str, cipherFile);
 	//调用加密函数
 	rc4.Encrypt(plainFile.c_str(), keyStr, cipherFile.c_str());
+}
+
+
+//RC4二级加密函数
+void RC4Alg::SecondEncrypt(string plainFile, const char *keyStr,string cipherFile)
+{
+
 }
 
 
@@ -77,6 +88,8 @@ void RC4Alg::Decrypt(string cipherFile, const char *keyStr,string plainFile)
 	RC4 rc4;
 	//调用解密函数
 	rc4.Decrypt(cipherFile.c_str(), keyStr, plainFile.c_str());
+	//删除一级加密文件
+	remove(cipherFile.c_str());
 }
 
 
