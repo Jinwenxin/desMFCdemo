@@ -1,6 +1,7 @@
 #include "desencryption.h"
 #include "RC4.h"
 #include "AES.h"
+#include "md5.h"
 #include <string>
 
 //加密算法类型
@@ -15,8 +16,8 @@ const int iDecrypt = 2;  //解密
 //函数声明
 string FindExt(string filepath);		   //返回文件扩展名函数
 bool IsSecondEncrypt(string filepath);	   //判断文件是否经过二级加密函数
-void WriteInfo(int alg, string ext, string filepath);           //写入文件信息函数
-void ReadInfo(int &alg, string &ext, string filepath);          //读取文件信息函数
+void WriteInfo(int alg, string ext, string md5str, string filepath);           //写入文件信息函数
+void ReadInfo(int &alg, string &ext, string &md5str, string filepath);          //读取文件信息函数
 
 //加密算法基类
 class BaseAlg

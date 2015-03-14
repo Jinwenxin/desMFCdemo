@@ -168,8 +168,10 @@ UINT EnThread(LPVOID param)
 				int alg_temp;
 				//待解密文件原扩展名
 				string ext_temp = "";
+				//待解密文件原MD5值
+				string md5str_temp = "";
 				//读取待解密文件信息
-				ReadInfo(alg_temp, ext_temp, filelist[index].file);
+				ReadInfo(alg_temp, ext_temp, md5str_temp, filelist[index].file);
 
 				//转换成相应算法类对象
 				base = CreateAlg(base, alg_temp);
@@ -183,6 +185,18 @@ UINT EnThread(LPVOID param)
 				dir_temp += ext_temp;
 				//调用解密函数
 				base->Decrypt(filelist[index].file, key.c_str(), dir_temp);
+
+				//解密后重新计算MD5值
+				string md5str = "";
+				MD5_Read(dir_temp.c_str(),md5str);
+				//比较两个MD5值
+				if(md5str_temp.compare(md5str) != 0)
+				{
+					//两个MD值不相同，做相应处理
+					CString msg;
+					msg.Format("%s 文件不完整！", dir_temp);
+					AfxMessageBox(msg);
+				}
 				break;
 			}
 		default:

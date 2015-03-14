@@ -16,4 +16,4 @@ struct File
 typedef vector<File> Fvector;
 
 //文件信息缓冲大小
-const int BUFMAX = 10;
+const int BUFMAX = 45;

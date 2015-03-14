@@ -1,7 +1,6 @@
 #include "StdAfx.h"
 #include "Algorithm.h"
 
-
 //DES加密算法类
 
 //DES加密函数
@@ -9,8 +8,11 @@ void DESAlg::Encrypt(string plainFile, const char *keyStr,string cipherFile)
 {
 	//创建des加密类对象
 	desencryption des;
+	//计算待加密文件MD5值
+	string md5str = "";
+	MD5_Read(plainFile.c_str(),md5str);
 	//调用写入信息函数
-	WriteInfo(iDES, FindExt(plainFile), cipherFile);
+	WriteInfo(iDES, FindExt(plainFile), md5str, cipherFile);
 	//调用加密函数
 	des.DES_Encrypt(plainFile.c_str(), keyStr, cipherFile.c_str());
 }
@@ -23,8 +25,11 @@ void DESAlg::SecondEncrypt(string plainFile, const char *keyStr,string cipherFil
 	desencryption des;
 	//调用加密函数实现一级加密
 	des.DES_Encrypt(plainFile.c_str(), keyStr, cipherFile.c_str());
+	//计算待加密文件MD5值
+	string md5str;
+	MD5_Read(plainFile.c_str(),md5str);
 	//调用写入信息函数
-	WriteInfo(iDES, FindExt(plainFile), cipherFile + "s");
+	WriteInfo(iDES, FindExt(plainFile), md5str, cipherFile + "s");
 	//调用加密函数实现二级加密，并修改加密文件后缀
 	des.DES_Encrypt(cipherFile.c_str(), keyStr, (cipherFile + "s").c_str());
 	//删除一级加密文件
@@ -127,7 +132,7 @@ extern bool IsSecondEncrypt(string filepath)
 // alg          加密算法类型
 // ext          文件拓展名
 // filepath		文件路径
-extern void WriteInfo(int alg, string ext, string filepath)
+extern void WriteInfo(int alg, string ext, string md5str, string filepath)
 {
 	FILE *file;
 	//新建或打开待写入文件
@@ -142,6 +147,10 @@ extern void WriteInfo(int alg, string ext, string filepath)
 	buf.push_back('*');
 	//加入文件扩展名
 	buf += ext;
+	//加入信息分隔符 
+	buf.push_back('*');
+	//加入MD5值
+	buf += md5str;
 	//用信息分隔符填充剩余长度字符
 	while(buf.size() < BUFMAX)
 		buf.push_back('*');
@@ -157,7 +166,7 @@ extern void WriteInfo(int alg, string ext, string filepath)
 // alg			加密算法类型
 // ext			文件扩展名
 // filepath		文件路径 
-void ReadInfo(int &alg, string &ext, string filepath)
+void ReadInfo(int &alg, string &ext,string &md5str, string filepath)
 {
 	FILE *file;
 	//打开待解密文件
@@ -171,12 +180,24 @@ void ReadInfo(int &alg, string &ext, string filepath)
 	//将加密类型赋值
 	alg = buf[0] - '0';
 
+	//索引从扩展名首位开始
+	int index = 2;
 	//读取文件拓展名,遇到分隔符则停止读取
-	for(int i = 2; buf[i] != '*'; i++)
+	while(buf[index] != '*')
 	{
 		//将读取的字符加入扩展名变量中
-		ext.push_back(buf[i]);
+		ext.push_back(buf[index++]);
 	}
+
+	//索引从MD5值首位开始
+	index++;
+	//读取MD5值,遇到分隔符则停止读取
+	while(buf[index] != '*')
+	{
+		//将读取的字符加入MD5值变量中
+		md5str.push_back(buf[index++]);
+	}
+
 	//关闭文件
 	fclose(file);
 }
