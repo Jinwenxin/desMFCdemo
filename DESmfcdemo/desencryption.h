@@ -17,5 +17,8 @@ public:
 	int DES_Encrypt(const char *plainFile, const char *keyStr,const char *cipherFile); 
 	//DES解密函数
 	int DES_Decrypt(const char *cipherFile, const char *keyStr,const char *plainFile); 
+private:
+	//标识是否二级解密，默认为一级解密
+	bool SecEnDES;
 };
 

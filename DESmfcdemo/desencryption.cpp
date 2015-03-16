@@ -5,8 +5,7 @@
 #include "time.h"
 #include "stdlib.h"
 
-//标识是否二级解密，默认为一级解密
-bool SecEn = false;
+
 
 /*初始置换表，逆初始置换表，S-Box等已知数据*/
 //初始置换表IP  
@@ -130,6 +129,7 @@ int DES_DecryptBlock(ElemType cipherBlock[8], ElemType subKeys[16][48], ElemType
 //构造函数
 desencryption::desencryption(void)
 {
+	SecEnDES = false;
 }
 
 //析构函数
@@ -154,7 +154,7 @@ int desencryption::DES_Encrypt(const char *plainFile, const char *keyStr,const c
         return CIPHER_FILE_OPEN_ERROR;  
     }  
     //设置密钥  
-    memcpy(keyBlock,keyStr,8);  
+    strcpy(keyBlock,keyStr);  
     //将密钥转换为二进制流  
     Char8ToBit64(keyBlock,bKey);  
     //生成子密钥
@@ -199,7 +199,8 @@ int desencryption::DES_Decrypt(const char *cipherFile, const char *keyStr, const
     }  
   
     //设置密钥  
-    memcpy(keyBlock,keyStr,8);  
+	strcpy(keyBlock,keyStr);  
+
     //将密钥转换为二进制流  
     Char8ToBit64(keyBlock,bKey);  
     //生成子密钥  
@@ -211,11 +212,11 @@ int desencryption::DES_Decrypt(const char *cipherFile, const char *keyStr, const
     rewind(cipher);             //将文件指针重指向文件头  
 
 	//如果不是二级解密，则将文件指针移到数据区
-	if(!SecEn)
+	if(!SecEnDES)
 	{
 		fseek(cipher, BUFMAX,1);
 		fileLen -=BUFMAX;
-		SecEn = true;
+		SecEnDES = true;
 	}
 
     while(1){  

@@ -11,8 +11,8 @@ class AES
 public:
 	AES(void);
 	~AES(void);
-	void Encrypt_File(string plainFile, unsigned char* key, string cipherFile);
-	void Decrypt_File(string plainFile, unsigned char* key, string cipherFile);
+	void Encrypt_File(const char *plainFile, unsigned char* key, const char *cipherFile);
+	void Decrypt_File(const char *plainFile, unsigned char* key, const char *cipherFile);
 
 private:
 	unsigned char* InvCipher(unsigned char* input);
@@ -39,5 +39,8 @@ private:
 	unsigned char w[11][4][4];
 	unsigned char Sbox[256];
 	unsigned char InvSbox[256];
+
+	//标识是否二级解密，默认为一级解密
+	bool SecEnAES;
 };
 

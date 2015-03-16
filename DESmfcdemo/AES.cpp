@@ -1,8 +1,12 @@
 #include "StdAfx.h"
 #include "AES.h"
 
+
+
 AES::AES(void)
 {
+	SecEnAES = false;
+
 	unsigned char sBox[] = 
 	{ /*  0      1       2      3      4      5      6      7       8      9      a       b       c      d      e       f */
 		0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76, /*0*/ 
@@ -60,297 +64,297 @@ void AES::setKey(unsigned char *key)
 
 void AES::SubBytes(unsigned char state[][4])
 {
-    int r,c;
-    for(r=0; r<4; r++)
-    {
-        for(c=0; c<4; c++)
-        {
-            state[r][c] = Sbox[state[r][c]];
-        }
-    }
+	int r,c;
+	for(r=0; r<4; r++)
+	{
+		for(c=0; c<4; c++)
+		{
+			state[r][c] = Sbox[state[r][c]];
+		}
+	}
 }
 
 
 void AES::ShiftRows(unsigned char state[][4])
 {
-    unsigned char t[4];
-    int r,c;
-    for(r=1; r<4; r++)
-    {
-        for(c=0; c<4; c++)
-        {
-            t[c] = state[r][(c+r)%4];
-        }
-        for(c=0; c<4; c++)
-        {
-            state[r][c] = t[c];
-        }
-    }
+	unsigned char t[4];
+	int r,c;
+	for(r=1; r<4; r++)
+	{
+		for(c=0; c<4; c++)
+		{
+			t[c] = state[r][(c+r)%4];
+		}
+		for(c=0; c<4; c++)
+		{
+			state[r][c] = t[c];
+		}
+	}
 }
 
 
 void AES::MixColumns(unsigned char state[][4])
 {
-    unsigned char t[4];
-    int r,c;
-    for(c=0; c< 4; c++)
-    {
-        for(r=0; r<4; r++)
-        {
-            t[r] = state[r][c];
-        }
-        for(r=0; r<4; r++)
-        {
-            state[r][c] = FFmul(0x02, t[r])
-                        ^ FFmul(0x03, t[(r+1)%4])
-                        ^ FFmul(0x01, t[(r+2)%4])
-                        ^ FFmul(0x01, t[(r+3)%4]);
-        }
-    }
+	unsigned char t[4];
+	int r,c;
+	for(c=0; c< 4; c++)
+	{
+		for(r=0; r<4; r++)
+		{
+			t[r] = state[r][c];
+		}
+		for(r=0; r<4; r++)
+		{
+			state[r][c] = FFmul(0x02, t[r])
+				^ FFmul(0x03, t[(r+1)%4])
+				^ FFmul(0x01, t[(r+2)%4])
+				^ FFmul(0x01, t[(r+3)%4]);
+		}
+	}
 }
 
 
 unsigned char AES::FFmul(unsigned char a, unsigned char b)
 {
-    unsigned char bw[4];
-    unsigned char res=0;
-    int i;
-    bw[0] = b;
-    for(i=1; i<4; i++)
-    {
-        bw[i] = bw[i-1]<<1;
-        if(bw[i-1]&0x80)
-        {
-            bw[i]^=0x1b;
-        }
-    }
-    for(i=0; i<4; i++)
-    {
-        if((a>>i)&0x01)
-        {
-            res ^= bw[i];
-        }
-    }
-    return res;
+	unsigned char bw[4];
+	unsigned char res=0;
+	int i;
+	bw[0] = b;
+	for(i=1; i<4; i++)
+	{
+		bw[i] = bw[i-1]<<1;
+		if(bw[i-1]&0x80)
+		{
+			bw[i]^=0x1b;
+		}
+	}
+	for(i=0; i<4; i++)
+	{
+		if((a>>i)&0x01)
+		{
+			res ^= bw[i];
+		}
+	}
+	return res;
 }
 
 
 void AES::AddRoundKey(unsigned char state[][4], unsigned char k[][4])
 {
-    int r,c;
-    for(c=0; c<4; c++)
-    {
-        for(r=0; r<4; r++)
-        {
-            state[r][c] ^= k[r][c];
-        }
-    }
+	int r,c;
+	for(c=0; c<4; c++)
+	{
+		for(r=0; r<4; r++)
+		{
+			state[r][c] ^= k[r][c];
+		}
+	}
 }
 
 
 void AES::KeyExpansion(unsigned char* key, unsigned char w[][4][4])
 {
-    int i,j,r,c;
-    unsigned char rc[] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
-    for(r=0; r<4; r++)
-    {
-        for(c=0; c<4; c++)
-        {
-            w[0][r][c] = key[r+c*4];
-        }
-    }
-    for(i=1; i<=10; i++)
-    {
-        for(j=0; j<4; j++)
-        {
-            unsigned char t[4];
-            for(r=0; r<4; r++)
-            {
-                t[r] = j ? w[i][r][j-1] : w[i-1][r][3];
-            }
-            if(j == 0)
-            {
-                unsigned char temp = t[0];
-                for(r=0; r<3; r++)
-                {
-                    t[r] = Sbox[t[(r+1)%4]];
-                }
-                t[3] = Sbox[temp];
-                t[0] ^= rc[i-1];
-            }
-            for(r=0; r<4; r++)
-            {
-                w[i][r][j] = w[i-1][r][j] ^ t[r];
-            }
-        }
-    }
+	int i,j,r,c;
+	unsigned char rc[] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
+	for(r=0; r<4; r++)
+	{
+		for(c=0; c<4; c++)
+		{
+			w[0][r][c] = key[r+c*4];
+		}
+	}
+	for(i=1; i<=10; i++)
+	{
+		for(j=0; j<4; j++)
+		{
+			unsigned char t[4];
+			for(r=0; r<4; r++)
+			{
+				t[r] = j ? w[i][r][j-1] : w[i-1][r][3];
+			}
+			if(j == 0)
+			{
+				unsigned char temp = t[0];
+				for(r=0; r<3; r++)
+				{
+					t[r] = Sbox[t[(r+1)%4]];
+				}
+				t[3] = Sbox[temp];
+				t[0] ^= rc[i-1];
+			}
+			for(r=0; r<4; r++)
+			{
+				w[i][r][j] = w[i-1][r][j] ^ t[r];
+			}
+		}
+	}
 }
 
 
 void AES::InvSubBytes(unsigned char state[][4])
 {
-    int r,c;
-    for(r=0; r<4; r++)
-    {
-        for(c=0; c<4; c++)
-        {
-            state[r][c] = InvSbox[state[r][c]];
-        }
-    }
+	int r,c;
+	for(r=0; r<4; r++)
+	{
+		for(c=0; c<4; c++)
+		{
+			state[r][c] = InvSbox[state[r][c]];
+		}
+	}
 }
 
- 
+
 void AES::InvShiftRows(unsigned char state[][4])
 {
-    unsigned char t[4];
-    int r,c;
-    for(r=1; r<4; r++)
-    {
-        for(c=0; c<4; c++)
-        {
-            t[c] = state[r][(c-r+4)%4];
-        }
-        for(c=0; c<4; c++)
-        {
-            state[r][c] = t[c];
-        }
-    }
+	unsigned char t[4];
+	int r,c;
+	for(r=1; r<4; r++)
+	{
+		for(c=0; c<4; c++)
+		{
+			t[c] = state[r][(c-r+4)%4];
+		}
+		for(c=0; c<4; c++)
+		{
+			state[r][c] = t[c];
+		}
+	}
 }
- 
+
 
 void AES::InvMixColumns(unsigned char state[][4])
 {
-    unsigned char t[4];
-    int r,c;
-    for(c=0; c< 4; c++)
-    {
-        for(r=0; r<4; r++)
-        {
-            t[r] = state[r][c];
-        }
-        for(r=0; r<4; r++)
-        {
-            state[r][c] = FFmul(0x0e, t[r])
-                        ^ FFmul(0x0b, t[(r+1)%4])
-                        ^ FFmul(0x0d, t[(r+2)%4])
-                        ^ FFmul(0x09, t[(r+3)%4]);
-        }
-    }
+	unsigned char t[4];
+	int r,c;
+	for(c=0; c< 4; c++)
+	{
+		for(r=0; r<4; r++)
+		{
+			t[r] = state[r][c];
+		}
+		for(r=0; r<4; r++)
+		{
+			state[r][c] = FFmul(0x0e, t[r])
+				^ FFmul(0x0b, t[(r+1)%4])
+				^ FFmul(0x0d, t[(r+2)%4])
+				^ FFmul(0x09, t[(r+3)%4]);
+		}
+	}
 }
 
 
 unsigned char* AES::Cipher(unsigned char* input)
 {
-    unsigned char state[4][4];
-    int i,r,c;
- 
-    for(r=0; r<4; r++)
-    {
-        for(c=0; c<4 ;c++)
-        {
-            state[r][c] = input[c*4+r];
-        }
-    }
-	
-    AddRoundKey(state,w[0]);
- 
-    for(i=1; i<=10; i++)
-    {
-        SubBytes(state);
-        ShiftRows(state);
-        if(i!=10)MixColumns(state);
-        AddRoundKey(state,w[i]);
-    }
- 
-    for(r=0; r<4; r++)
-    {
-        for(c=0; c<4 ;c++)
-        {
-            input[c*4+r] = state[r][c];
-        }
-    }
- 
-    return input;
+	unsigned char state[4][4];
+	int i,r,c;
+
+	for(r=0; r<4; r++)
+	{
+		for(c=0; c<4 ;c++)
+		{
+			state[r][c] = input[c*4+r];
+		}
+	}
+
+	AddRoundKey(state,w[0]);
+
+	for(i=1; i<=10; i++)
+	{
+		SubBytes(state);
+		ShiftRows(state);
+		if(i!=10)MixColumns(state);
+		AddRoundKey(state,w[i]);
+	}
+
+	for(r=0; r<4; r++)
+	{
+		for(c=0; c<4 ;c++)
+		{
+			input[c*4+r] = state[r][c];
+		}
+	}
+
+	return input;
 }
 
 
 unsigned char* AES::InvCipher(unsigned char* input)
 {
-    unsigned char state[4][4];
-    int i,r,c;
- 
-    for(r=0; r<4; r++)
-    {
-        for(c=0; c<4 ;c++)
-        {
-            state[r][c] = input[c*4+r];
-        }
-    }
- 
-    AddRoundKey(state, w[10]);
-    for(i=9; i>=0; i--)
-    {
-        InvShiftRows(state);
-        InvSubBytes(state);
-        AddRoundKey(state, w[i]);
-        if(i)InvMixColumns(state);
-    }
-     
-    for(r=0; r<4; r++)
-    {
-        for(c=0; c<4 ;c++)
-        {
-            input[c*4+r] = state[r][c];
-        }
-    }
- 
-    return input;
+	unsigned char state[4][4];
+	int i,r,c;
+
+	for(r=0; r<4; r++)
+	{
+		for(c=0; c<4 ;c++)
+		{
+			state[r][c] = input[c*4+r];
+		}
+	}
+
+	AddRoundKey(state, w[10]);
+	for(i=9; i>=0; i--)
+	{
+		InvShiftRows(state);
+		InvSubBytes(state);
+		AddRoundKey(state, w[i]);
+		if(i)InvMixColumns(state);
+	}
+
+	for(r=0; r<4; r++)
+	{
+		for(c=0; c<4 ;c++)
+		{
+			input[c*4+r] = state[r][c];
+		}
+	}
+
+	return input;
 }
 
 //fixing...
 unsigned char* AES::Cipher(void* input, int length)
 {
-    unsigned char* in = (unsigned char*) input;
-    int i;
-    if(!length)
-    {
-        while(*(in+length++));
-        in = (unsigned char*) input;
-    }
-    for(i=0; i<length; i+=16)
-    {
-        Cipher(in+i);
-    }
-    return (unsigned char*) input;
+	unsigned char* in = (unsigned char*) input;
+	int i;
+	if(!length)
+	{
+		while(*(in+length++));
+		in = (unsigned char*) input;
+	}
+	for(i=0; i<length; i+=16)
+	{
+		Cipher(in+i);
+	}
+	return (unsigned char*) input;
 }
- 
+
 
 void* AES::InvCipher(void* input, int length)
 {
-    unsigned char* in = (unsigned char*) input;
-    int i;
-    for(i=0; i<length; i+=16)
-    {
-        InvCipher(in+i);
-    }
-    return input;
+	unsigned char* in = (unsigned char*) input;
+	int i;
+	for(i=0; i<length; i+=16)
+	{
+		InvCipher(in+i);
+	}
+	return input;
 }
 
 
-void AES::Encrypt_File(string plainFile, unsigned char* key, string cipherFile)
+void AES::Encrypt_File(const char *plainFile, unsigned char* key, const char *cipherFile)
 {
 	KeyExpansion(key, w);
 	fstream plain, cipher;
 	plain.open(plainFile, ios::binary | ios::in);
 	cipher.open(cipherFile, ios::binary | ios::out | ios::app);
 	if(plain == NULL){
-		cout << "can't open plain file" << endl;
-        return;
-    }
-    if(cipher == NULL){
-		cout << "can't open cipher file" << endl;
-        return;
-    }
+		cout << "can't open plain file" << plainFile << endl;
+		return;
+	}
+	if(cipher == NULL){
+		cout << "can't open cipher file" << cipherFile <<endl;
+		return;
+	}
 	unsigned char *plainBlock, *cipherBlock;
 	char pBlock[16], *cBlock;
 	int count = 0;
@@ -363,7 +367,9 @@ void AES::Encrypt_File(string plainFile, unsigned char* key, string cipherFile)
 		if(count == 16)
 		{
 			plainBlock = CharptrToUnsignedptr(pBlock, 16);
+			//for(int i = 0; i < 16; i++) printf("%0x ", plainBlock[i]); cout << endl;
 			cipherBlock = Cipher(plainBlock);
+			//for(int i = 0; i < 16; i++) printf("%0x ", cipherBlock[i]); cout << endl;
 			//cBlock = (char*) cipherBlock;
 			//strcpy(cBlock, (const char*)cipherBlock);
 			cBlock = UnsignedptrToCharptr(cipherBlock, 16);
@@ -388,24 +394,32 @@ void AES::Encrypt_File(string plainFile, unsigned char* key, string cipherFile)
 }
 
 
-void AES::Decrypt_File(string cipherFile, unsigned char* key, string plainFile)
+void AES::Decrypt_File(const char *cipherFile, unsigned char* key, const char *plainFile)
 {
 	KeyExpansion(key, w);
 	fstream plain, cipher;
 	plain.open(plainFile, ios::binary | ios::out);
 	cipher.open(cipherFile, ios::binary | ios::in);
 	if(plain == NULL){
-		cout << "can't open plain file" << endl;
-        return;
-    }
-    if(cipher == NULL){
-		cout << "can't open cipher file" << endl;
-        return;
-    }
+		cout << "can't open plain file" << plainFile << endl;
+		return;
+	}
+	if(cipher == NULL){
+		cout << "can't open cipher file" << cipherFile << endl;
+		return;
+	}
 	unsigned char *plainBlock, *cipherBlock;
 	char *pBlock, *cBlock = new char[16];
 	int count = 0;
 	//密文的长度一定是128bit的整数倍
+
+	//如果不是二级解密，则将文件指针移到数据区
+	if(!SecEnAES)
+	{
+		cipher.seekg(BUFMAX, ios::cur);
+		SecEnAES = true;
+	}
+
 	while(1)
 	{
 		cipher.read(cBlock, 16);
@@ -424,8 +438,11 @@ void AES::Decrypt_File(string cipherFile, unsigned char* key, string plainFile)
 	count = InvPKCS7Padding(plainBlock);
 	cout << count << endl;
 	for(int i = 0; i < 16; i++) printf("%0x ", pBlock[i]); cout << endl;
-	plain.write(pBlock, count);
-	cout << pBlock << endl;
+	if(!count)
+		plain.write(pBlock, 16);
+	else
+		plain.write(pBlock, count);
+	//cout << pBlock << endl;
 
 	plain.close();
 	cipher.close();
@@ -452,9 +469,9 @@ void AES::PKCS7Padding(int count, unsigned char block[16])
 
 int AES::InvPKCS7Padding(unsigned char* block)
 {
-	char padnum = block[15];
-	if(padnum >= 16) return 0;
-	char count = 16 - padnum;
+	unsigned char padnum = block[15];
+	if(padnum >= 16 || padnum <= 0) return 0;
+	unsigned char count = 16 - padnum;
 	for(int i = 15; i >= count; i--)
 	{
 		if(block[i] != padnum) return 0;

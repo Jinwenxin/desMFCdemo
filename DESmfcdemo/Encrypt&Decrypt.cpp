@@ -34,8 +34,8 @@ void init_s(const char *key_data)//初始化s表
 	}   
 	for(i=0,j=0;i<256;i++)//根据密钥表rc4key填充s表  
 	{
-		j=(rc4key[i]+s[i]+j)%256;   
-		swap(s[i],s[j]);  
+		j=(rc4key[i]+s[i]+j)%256;
+		swap(s[i],s[j]);
 	} 
 }   
 
@@ -112,7 +112,7 @@ void init_s(const char *key_data)//初始化s表
 
 	//将文件指针移到数据区
 	in.seekg(BUFMAX, ios::cur);
-
+	init_s(key); 
 	while(!in.eof())
 	{		 	   
 			in.read(buf_data,sizeof(buf_data));

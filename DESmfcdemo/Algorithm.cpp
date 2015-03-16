@@ -26,7 +26,7 @@ void DESAlg::SecondEncrypt(string plainFile, const char *keyStr,string cipherFil
 	//调用加密函数实现一级加密
 	des.DES_Encrypt(plainFile.c_str(), keyStr, cipherFile.c_str());
 	//计算待加密文件MD5值
-	string md5str;
+	string md5str = "";
 	MD5_Read(plainFile.c_str(),md5str);
 	//调用写入信息函数
 	WriteInfo(iDES, FindExt(plainFile), md5str, cipherFile + "s");
@@ -100,18 +100,54 @@ void AESAlg::Encrypt(string plainFile, const char *keyStr,string cipherFile)
 {
 	//创建AES加密类对象
 	AES aes;
+	//计算待加密文件MD5值
+	string md5str = "";
+	MD5_Read(plainFile.c_str(), md5str);
+	//调用写入信息函数
+	WriteInfo(iAES, FindExt(plainFile), md5str, cipherFile);
 	//调用加密函数
 	aes.Encrypt_File(plainFile.c_str(), (unsigned char*)keyStr, cipherFile.c_str());
 }
 
 
-//AES解密函数
-void AESAlg::Decrypt(string cipherFile, const char *keyStr,string plainFile)
+//AES二级加密函数
+void AESAlg::SecondEncrypt(string plainFile, const char *keyStr,string cipherFile)
 {
 	//创建AES加密类对象
 	AES aes;
+	//调用加密函数实现一级加密
+	aes.Encrypt_File(plainFile.c_str(), (unsigned char*)keyStr, cipherFile.c_str());
+	//计算待加密文件MD5值
+	string md5str = "";
+	MD5_Read(plainFile.c_str(),md5str);
+	//调用写入信息函数
+	WriteInfo(iAES, FindExt(plainFile), md5str, cipherFile + "s");
+	//调用加密函数实现二级加密，并修改加密文件后缀
+	aes.Encrypt_File(cipherFile.c_str(), (unsigned char*)keyStr, (cipherFile + "s").c_str());
+	//删除一级加密文件
+	remove(cipherFile.c_str());
+}
+
+
+//AES解密函数
+void AESAlg::Decrypt(string cipherFile, const char *keyStr, string plainFile)
+{
+	//创建AES加密类对象
+	AES aes;
+	if(IsSecondEncrypt(cipherFile))	//如果文件经过二级加密
+	{
+		//调用解密函数
+		aes.Decrypt_File(cipherFile.c_str(), (unsigned char*)keyStr, cipherFile.substr(0, cipherFile.size() - 1).c_str());
+		//删除二级加密文件
+		remove(cipherFile.c_str());
+		//修改文件路径
+		cipherFile = cipherFile.substr(0, cipherFile.size() - 1);
+	}
+
 	//调用解密函数
 	aes.Decrypt_File(cipherFile.c_str(), (unsigned char*)keyStr, plainFile.c_str());
+	//删除一级加密文件
+	remove(cipherFile.c_str());
 }
 
 

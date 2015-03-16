@@ -71,42 +71,42 @@ void task::DoTask(int alg_f, int type_f)
 //  dir_temp   转换后文件路径
 void pathTransform(string dir, File fileinfo, string &dir_temp)
 {
-		if(dir != "")  
+	if(dir != "")  
+	{
+		//将输出目录赋值给临时变量
+		dir_temp = dir;
+		//查找要保持的文件目录结构起始位置
+		int pos = fileinfo.from.size();
+
+		if(pos == 0)    //是选择文件操作
 		{
-			//将输出目录赋值给临时变量
-			dir_temp = dir;
-			//查找要保持的文件目录结构起始位置
-			int pos = fileinfo.from.size();
-			
-			if(pos == 0)    //是选择文件操作
-			{
-				//找到路径中文件名起始位置
-				pos = fileinfo.file.find_last_of('\\');
-				//添加文件名
-				dir_temp += fileinfo.file.substr(pos);
-			}
-			else			//是选择目录操作
-			{
-				//添加文件目录结构及文件名
-				dir_temp += fileinfo.file.substr(pos);
-				//保持文件的目录结构，如果目录不存在则创建目录
-				MakeSureDirectoryPathExists(dir_temp.c_str());
-			}
+			//找到路径中文件名起始位置
+			pos = fileinfo.file.find_last_of('\\');
+			//添加文件名
+			dir_temp += fileinfo.file.substr(pos);
 		}
-		else
+		else			//是选择目录操作
 		{
-			//输出目录为空则在源目录生成重命名解密文件
-			dir_temp = fileinfo.file;
+			//添加文件目录结构及文件名
+			dir_temp += fileinfo.file.substr(pos);
+			//保持文件的目录结构，如果目录不存在则创建目录
+			MakeSureDirectoryPathExists(dir_temp.c_str());
 		}
-		//修改加密文件扩展名
-		int posext = dir_temp.find_last_of('.');
-		//去除原文件的拓展名
-		dir_temp = dir_temp.substr(0, posext);
-		//添加定义好的加密文件拓展名
-		if(type == 2)  //解密操作时拓展名为.fess
-			dir_temp += ".fess";
-		else
-			dir_temp += ".fes";
+	}
+	else
+	{
+		//输出目录为空则在源目录生成重命名解密文件
+		dir_temp = fileinfo.file;
+	}
+	//修改加密文件扩展名
+	int posext = dir_temp.find_last_of('.');
+	//去除原文件的拓展名
+	dir_temp = dir_temp.substr(0, posext);
+	//添加定义好的加密文件拓展名
+	if(type == 2)  //解密操作时拓展名为.fess
+		dir_temp += ".fess";
+	else
+		dir_temp += ".fes";
 }
 
 
@@ -120,7 +120,7 @@ UINT EnThread(LPVOID param)
 	{	
 		//临界区锁定共享资源
 		EnterCriticalSection(&g_cs);
-        
+
 		if(g_index == filelist.size())
 		{
 			//向主线程发送完成消息
@@ -143,24 +143,40 @@ UINT EnThread(LPVOID param)
 		switch(type)
 		{
 		case iEncrypt:		//一级加密
-			//转换成相应算法类对象
-			base = CreateAlg(base, alg);
-		switch(type)
-		case 0:		//一级加密
-			//调用文件路径转换函数
-			pathTransform(en_dir, filelist[index], dir_temp);
-			//调用加密函数
-			base->Encrypt(filelist[index].file, key.c_str(), dir_temp);
-			break;
+			{
+				//转换成相应算法类对象
+				base = CreateAlg(base, alg);
+				//调用文件路径转换函数
+				pathTransform(en_dir, filelist[index], dir_temp);
+
+				EnterCriticalSection(&g_cs);
+				//获取密钥
+				string key_temp = key;
+				//临界区解锁
+				LeaveCriticalSection(&g_cs);
+
+				//调用加密函数
+				base->Encrypt(filelist[index].file, key_temp.c_str(), dir_temp);
+				break;
+			}
 
 		case  iSecEncrypt:	//二级加密
-			//转换成相应算法类对象
-			base = CreateAlg(base, alg);
-			//调用文件路径转换函数
-			pathTransform(en_dir, filelist[index], dir_temp);
-			//调用二级加密函数
-			base->SecondEncrypt(filelist[index].file, key.c_str(), dir_temp);
-			break;
+			{
+				//转换成相应算法类对象
+				base = CreateAlg(base, alg);
+				//调用文件路径转换函数
+				pathTransform(en_dir, filelist[index], dir_temp);
+
+				EnterCriticalSection(&g_cs);
+				//获取密钥
+				string key_temp = key;
+				//临界区解锁
+				LeaveCriticalSection(&g_cs);
+
+				//调用二级加密函数
+				base->SecondEncrypt(filelist[index].file, key_temp.c_str(), dir_temp);
+				break;
+			}
 
 		case iDecrypt:		//解密
 			{
@@ -183,8 +199,15 @@ UINT EnThread(LPVOID param)
 				//去除原文件的拓展名
 				dir_temp = dir_temp.substr(0, posext + 1);
 				dir_temp += ext_temp;
+
+				EnterCriticalSection(&g_cs);
+				//获取密钥
+				string key_temp = key;
+				//临界区解锁
+				LeaveCriticalSection(&g_cs);
+
 				//调用解密函数
-				base->Decrypt(filelist[index].file, key.c_str(), dir_temp);
+				base->Decrypt(filelist[index].file, key_temp.c_str(), dir_temp);
 
 				//解密后重新计算MD5值
 				string md5str = "";
@@ -194,7 +217,7 @@ UINT EnThread(LPVOID param)
 				{
 					//两个MD值不相同，做相应处理
 					CString msg;
-					msg.Format("%s 文件不完整！", dir_temp);
+					msg.Format("%s 文件不完整,类型：%d！", dir_temp.c_str(), alg_temp);
 					AfxMessageBox(msg);
 				}
 				break;
@@ -223,7 +246,7 @@ BaseAlg *CreateAlg(BaseAlg *base, int alg)
 		break;
 	case iAES:
 		//AES加解密
-		//base = new AESAlg;
+		base = new AESAlg;
 		break;
 	default:
 		break;
