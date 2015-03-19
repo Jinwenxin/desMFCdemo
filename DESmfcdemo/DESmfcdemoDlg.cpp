@@ -299,7 +299,7 @@ void CDESmfcdemoDlg::Encrypt()
 	//创建并初始化task类对象
 	task t(GetSafeHwnd(), key.GetBuffer(0), filelist, en_dir.GetBuffer(0), de_dir.GetBuffer(0));
 	//调用对象任务函数
-	t.DoTask(2, 1);
+	t.DoTask(0, 0);
 }
 
 //解密操作函数
@@ -340,8 +340,18 @@ BOOL CDESmfcdemoDlg::OnWndMsg(UINT message, WPARAM wParam, LPARAM lParam, LRESUL
 	if(message == WM_FINISHMSG)
 	{
 		thread_finished++;
-		if(thread_finished == 2)	
-			AfxMessageBox("已完成！");
+		if(thread_finished == 2)
+		{	
+			CString msg;
+			msg.Format("%d已完成！", ((vector<int> *)wParam) ->size());
+			AfxMessageBox(msg);
+		}
 	}
+
+	if (message == WM_ONEFINISHMSG)
+	{
+		
+	}
+
 	return CDialogEx::OnWndMsg(message, wParam, lParam, pResult);
 }

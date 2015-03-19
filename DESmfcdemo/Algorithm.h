@@ -12,6 +12,7 @@ const int iAES = 2;  //AES
 const int iEncrypt = 0;     //一级加密
 const int iSecEncrypt = 1;  //二级加密
 const int iDecrypt = 2;  //解密
+const int iCHeck = 3;	 //完整性检测
 
 //函数声明
 string FindExt(string filepath);		   //返回文件扩展名函数

@@ -7,10 +7,11 @@ string en_dir;      //加密输出目录
 string de_dir;      //解密输出目录
 Fvector filelist;   //文件列表
 int alg;            //加解密算法类型
-int type;           //操作类型，0-一级加密，1-二级加密，2-解密
+int type;           //操作类型，0-一级加密，1-二级加密，2-解密，3-完整性检测
 
 CRITICAL_SECTION g_cs;    //临界区对象
 int g_index;          //全局资源，记录文件列表中已处理的索引
+vector<int> errorList;  //加解密错误文件索引数组
 static HWND g_mainHnd;    //父窗体句柄
 static HANDLE g_Hnd_1;   //线程一句柄
 static HANDLE g_Hnd_2;   //线程二句柄
@@ -40,9 +41,9 @@ task::~task(void)
 }
 
 
-//加密函数
+//执行任务函数
 // alg		加解密算法类型，0-DES，1-RC4，
-// type		操作类型，0-加密，1-解密
+// type		操作类型，0-一级加密，1-二级加密，2-解密，3-完整性检测
 void task::DoTask(int alg_f, int type_f)
 {
 	//加解密算法类型赋值
@@ -53,6 +54,7 @@ void task::DoTask(int alg_f, int type_f)
 	InitializeCriticalSection(&g_cs);
 	//初始化临界区资源
 	g_index = 0;
+	errorList.clear();
 
 	//定义两个线程用于加密操作
 	CWinThread *pThread_1, *pThread_2;
@@ -124,7 +126,7 @@ UINT EnThread(LPVOID param)
 		if(g_index == filelist.size())
 		{
 			//向主线程发送完成消息
-			::PostMessage(g_mainHnd, WM_FINISHMSG, 0, 0);
+			::PostMessage(g_mainHnd, WM_FINISHMSG, (LPARAM)&errorList, 0);
 			//临界区解锁
 			LeaveCriticalSection(&g_cs);
 			return false;      //退出函数
@@ -216,15 +218,70 @@ UINT EnThread(LPVOID param)
 				if(md5str_temp.compare(md5str) != 0)
 				{
 					//两个MD值不相同，做相应处理
-					CString msg;
-					msg.Format("%s 文件不完整,类型：%d！", dir_temp.c_str(), alg_temp);
-					AfxMessageBox(msg);
+					EnterCriticalSection(&g_cs);
+					//将解密出错文件索引加入错误列表
+					errorList.push_back(filelist.size() - 1 - index);
+					//临界区解锁
+					LeaveCriticalSection(&g_cs);
+				}
+				break;
+			}
+		case iCHeck:		//完整性检测
+			{
+				//待解密文件加密类型
+				int alg_temp;
+				//待解密文件原扩展名
+				string ext_temp = "";
+				//待解密文件原MD5值
+				string md5str_temp = "";
+				//读取待解密文件信息
+				ReadInfo(alg_temp, ext_temp, md5str_temp, filelist[index].file);
+
+				//转换成相应算法类对象
+				base = CreateAlg(base, alg_temp);
+				//调用文件路径转换函数
+				pathTransform(de_dir, filelist[index], dir_temp);
+
+				//更改文件解密输出文件扩展名为文件原扩展名
+				int posext = dir_temp.find_last_of('.');
+				//去除原文件的拓展名
+				dir_temp = dir_temp.substr(0, posext + 1);
+				dir_temp += ext_temp;
+
+				EnterCriticalSection(&g_cs);
+				//获取密钥
+				string key_temp = key;
+				//临界区解锁
+				LeaveCriticalSection(&g_cs);
+
+				//拷贝文件，使用文件副本处理
+				CopyFile(filelist[index].file.c_str(), (filelist[index].file + "temp").c_str(), FALSE);
+
+				//调用解密函数
+				base->Decrypt((filelist[index].file + "temp").c_str(), key_temp.c_str(), dir_temp);
+
+				//解密后重新计算MD5值
+				string md5str = "";
+				MD5_Read(dir_temp.c_str(),md5str);
+				//删除解密后的文件
+				remove(dir_temp.c_str());
+				//比较两个MD5值
+				if(md5str_temp.compare(md5str) != 0)
+				{
+					//两个MD值不相同，做相应处理
+					EnterCriticalSection(&g_cs);
+					//将解密出错文件索引加入错误列表
+					errorList.push_back(filelist.size() - 1 - index);
+					//临界区解锁
+					LeaveCriticalSection(&g_cs);
 				}
 				break;
 			}
 		default:
 			break;
 		}
+		//向主线程发送单个文件完成消息
+		::PostMessage(g_mainHnd, WM_ONEFINISHMSG, 0, 0);
 	}
 	return true;
 }

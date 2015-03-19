@@ -2,7 +2,6 @@
 #include <string>
 #include "Algorithm.h"
 
-#define WM_FINISHMSG WM_USER + 200	//自定义消息
 
 //函数声明
 void pathTransform(string dir, File fileinfo, string &dir_temp);        //文件路径转换函数
